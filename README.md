@@ -33,7 +33,7 @@ Kod je podeljen na 2 dela:
 
 - Poslovna vrednost (Business Value): Umesto generičkih saveta ("trenirajte više"), bot koristi ML model kao simulator da igračima ispiše tačan i najjeftiniji plan treninga potreban za pobedu.
 
-- Ciljana logika (>50% win rate): Ako klan gubi, bot pronalazi optimalan način da prebaci 50% šanse (spašavanje jednim igračem ili mobilizacija celog klana). Ako klan već vodi, traži Sweet Spot da dodatno osigura pobedu.
+- Ciljana logika (>50% win rate): Ako klan gubi, bot pronalazi optimalan način da prebaci 50% šanse (spašavanje jednim igračem ili mobilizacija celog klana). Kako smo videli da je najbitniji parametar training_bonus - fokus je na ovaj parametar. 
 
 - Greedy Algoritam i "Shifting Minimum": Bot rešava problem pomerajućeg minimuma tako što iterativno pronalazi trenutno najgoreg igrača, dodaje mu samo +1% bonusa, preračunava novu snagu klana i pita model za nove šanse. Teret treninga se tako savršeno i ravnomerno raspoređuje na najslabije karike.
 

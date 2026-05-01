@@ -1,41 +1,36 @@
-Moje resenje za Nordeus Job Fair 2026 Data Science Challenge.
+# Nordeus Job Fair 2026 - Data Science Challenge
 
-Kod je podeljen na 2 dela:
+Ovo je moje rešenje za Nordeus Job Fair 2026 Data Science Challenge.
 
-- pokusaji.ipynb gde su prikazane sve moje ideje i pokusaji koji nisu zavrsili u finalnom kodu i modelu. Tu se nalaze razliciti pristupi i vizualizacije kako bih se sto bolje upoznao sa podacima i modelima. 
+Projekat je organizovan u dva glavna Jupyter Notebook fajla kako bi se jasno razdvojila faza istraživanja od finalnog rešenja:
 
-- final.ipynb je zavrsan fajl u kojem se samo nalazi finalni model XGBoost.
+1. **pokusaji.ipynb** – Istraživački fajl (EDA, eksperimenti, mikro-modelovanje i odbačene ideje).
+2. **final.ipynb** – Završni fajl sa optimizovanim XGBoost modelom i kodom za Smart Assistant bota.
 
+### Pokretanje projekta
+Da biste pokrenuli kod, potrebno je da instalirate biblioteke iz `requirements.txt` fajla. Preporučujem korišćenje virtuelnog okruženja:
+```bash
+pip install -r requirements.txt
+```
 
+### 1. Faza Istraživanja (pokusaji.ipynb)
+Ovaj fajl sadrži analitičke korake, vizualizacije i eksperimentalne pristupe:
+* **EDA (Istraživanje podataka):** Primetio sam bimodalnu raspodelu kod kvaliteta igrača (zvezdica). Ovo verovatno ukazuje na default jačinu timova na samom početku igre u poređenju sa onima koji zapravo igraju i planski nadograđuju svoj tim.
+* **Pokušaj mikro-modelovanja (Reverse Engineering):** Umesto da predviđam pobednika na nivou klana, hteo sam da predvidim rezultat svakog individualnog duela (1 na 1). Napisao sam algoritam baziran na kombinatorici koji traži koje su to kombinacije pobeda/poraza mogle da daju ukupan broj poena klana. Od ovog pristupa sam odustao jer je bilo previše šuma. Menadžeri menjaju redosled igranja, a klasifikacija je bila previše disbalansirana, što je tačnost zadržalo na oko 50%.
+* **Feature Graveyard:** Ovde sam ispisao i testirao preko 60 različitih feature-a (razne sinergije, efikasnosti, varijanse unutar klana). Ispostavilo se da ubacivanje svega toga samo unosi šum i buni model, pa sam za finalno rešenje napravio strogu selekciju.
 
-1. pokusaji.ipynb
+### 2. Finalni Model (final.ipynb)
+Završni pristup se fokusira na modelovanje direktno na nivou celog klana:
+* **Makro pristup (Diff & Ratio):** Umesto suvih statistika, fokusirao sam se isključivo na razliku (`_diff`) i količnik (`_ratio`) ključnih metrika između dva klana.
+* **Selekcija feature-a:** Zadržao sam samo ono što stvarno radi i pravi razliku – minimumi i proseci trening bonusa.
+* **Sample Weighting:** Dao sam modelu veće težine (weights) za mečeve gde je razlika u poenima bila ogromna. Ideja je da model više uči iz ubedljivih pobeda nego iz onih gde je presudio jedan nasumičan gol.
+* **Optimizacija i Evaluacija:** Koristio sam Optuna biblioteku za traženje najboljih hiperparametara za XGBoost. Evaluaciju sam izvršio pomoću rigorozne StratifiedKFold validacije (5 foldova) kako bih bio siguran da model ne overfituje.
 
-- EDA (Istraživanje podataka): Primetio sam zanimljivu bimodalnu raspodelu kod kvaliteta igrača (zvezdica), što verovatno ukazuje na default jačinu timova na početku igre u poređenju sa onima koji zapravo igraju i budže tim.
+**Najbolji rezultat modela (Srednji Accuracy): 0.5882 (+/- 0.0066)**
 
-- Pokušaj mikro-modelovanja (Reverse Engineering): Umesto da predviđam pobednika na nivou klana, hteo sam da predvidim rezultat svakog individualnog duela (1 na 1). Napisao sam algoritam koji preko kombinatorike traži koje su to kombinacije pobeda/poraza mogle da daju ukupan broj poena klana. Zašto sam odustao od ovoga? Bilo je previše šuma. Menadžeri menjaju redosled igranja, a klasifikacija je bila previše disbalansirana. Tačnost je bila oko 50%.
-
-- Feature Graveyard: Ovde sam ispisao i testirao preko 60 različitih feature-a (razne sinergije, efikasnosti, varijanse unutar klana). Ispostavilo se da ubacivanje svega toga samo buni model, pa sam za finalno rešenje napravio strogu selekciju.
-
-2. final.ipynb
-
-- Makro pristup: Prešao sam na modelovanje direktno na nivou klanova.
-
-- Diff i Ratio: Umesto suvih statistika, fokusirao sam se na razliku (_diff) i količnik (_ratio) ključnih metrika između dva klana.
-
-- Sample Weighting: Dao sam modelu veće težine (weights) za mečeve gde je razlika u poenima bila ogromna. Ideja je da model više uči iz ubedljivih pobeda nego iz onih gde je presudio jedan gol.
-
-- Selekcija feature-a: Zadržao sam samo ono što stvarno radi – minimumi i proseci trening bonusa.
-
-- Optimizacija: Koristio sam Optuna biblioteku za traženje najboljih hiperparametara za XGBoost i StratifiedKFold (5 foldova) kako bih bio siguran da model ne overfituje.
-
-
-3. Bonus Task: Smart Assistant
-
-- Poslovna vrednost (Business Value): Umesto generičkih saveta ("trenirajte više"), bot koristi ML model kao simulator da igračima ispiše tačan i najjeftiniji plan treninga potreban za pobedu.
-
-- Ciljana logika (>50% win rate): Ako klan gubi, bot pronalazi optimalan način da prebaci 50% šanse (spašavanje jednim igračem ili mobilizacija celog klana). Kako smo videli da je najbitniji parametar training_bonus - fokus je na ovaj parametar. 
-
-- Greedy Algoritam i "Shifting Minimum": Bot rešava problem pomerajućeg minimuma tako što iterativno pronalazi trenutno najgoreg igrača, dodaje mu samo +1% bonusa, preračunava novu snagu klana i pita model za nove šanse. Teret treninga se tako savršeno i ravnomerno raspoređuje na najslabije karike.
-
-- Prepoznavanje "Nemoguće misije": Bot iščitava apsolutni maksimum iz podataka. Ako shvati da čak ni maksimalan trening ne donosi pobedu zbog lošijih osnovnih atributa (zvezdica), savetuje igračima da čuvaju resurse za sledeći meč.
-
+### 3. Bonus Task: Smart Assistant
+Kao dodatak, napravio sam alat koji ML predikcije pretvara u konkretnu poslovnu vrednost (Business Value).
+* **Simulator Treninga:** Umesto generičkih saveta poput "trenirajte više", bot koristi istrenirani ML model kao simulator da igračima ispiše tačan i najjeftiniji plan treninga potreban za pobedu.
+* **Ciljana Logika (>50% Win Rate):** Kako se ispostavilo da je najbitniji parametar `training_bonus`, fokus je na njemu. Ako klan gubi, bot pronalazi optimalan način da prebaci 50% šanse (spašavanje jednim igračem ili mobilizacija celog klana).
+* **Greedy Algoritam i "Shifting Minimum":** Bot rešava problem pomerajućeg minimuma tako što iterativno pronalazi trenutno najgoreg igrača, dodaje mu samo +1% bonusa, preračunava novu snagu klana i pita model za nove šanse. Teret treninga se tako savršeno i ravnomerno raspoređuje na najslabije karike.
+* **Prepoznavanje "Nemoguće misije":** Bot automatski iščitava apsolutni maksimum iz podataka. Ako shvati da čak ni maksimalan trening ne donosi pobedu zbog lošijih osnovnih atributa (zvezdica), savetuje igračima da čuvaju resurse za sledeći meč.
